@@ -48,7 +48,7 @@
   const currentQuestion = ref({
     letter: 'A',
     morse: '.-',
-    type:''
+    type: ''
   })
 
   const getNewQuestion = () => {
@@ -73,12 +73,20 @@
       currentQType.value = 'letter'
       return currentQuestion.value.letter
     }
-    if(Math.random() > 0.5) {
+    if(questionMode.value === 'audio') {
+      currentQType.value = 'audio'
+      return currentQuestion.value.audio
+    }
+    const r = Math.random()
+    if(r < 0.333) {
       currentQType.value = 'morse'
       return currentQuestion.value.morse
-    } else {
+    } else if(r < 0.666) {
       currentQType.value = 'letter'
       return currentQuestion.value.letter
+    } else {
+      currentQType.value = 'audio'
+      return currentQuestion.value.audio
     }
   }
 
@@ -98,6 +106,13 @@
       return givenAnswer.value.toLowerCase() == currentQuestion.value.letter.toLowerCase()
     }
   }
+
+  const playAudio = () => {
+    const audioUrl = `/audio/${currentQuestion.value.letter.toLowerCase()}.mp3`
+    const audio = new Audio(audioUrl);
+    audio.volume = 0.4
+    audio.play();
+  }
 </script>
 
 <template>
@@ -105,11 +120,13 @@
     <div class="absolute top-0 left-0 w-screen p-2">
       <fieldset class="text-sm flex gap-2 justify-center justify" @change="getNewQuestion">
         <input type="radio" id="letter" value="letter" name="mode" v-model="questionMode"/>
-        <label for="letter">Show Character</label>
+        <label for="letter">Characters Only</label>
         <input type="radio" id="morse" value="morse" name="mode" v-model="questionMode"/>
-        <label for="morse">Show Morse</label>
-        <input type="radio" id="both" value="both" name="mode" v-model="questionMode"/>
-        <label for="both">Show Both</label>
+        <label for="morse">Morse Only</label>
+        <input type="radio" id="audio" value="audio" name="mode" v-model="questionMode"/>
+        <label for="audio">Audio Only</label>
+        <input type="radio" id="all" value="all" name="mode" v-model="questionMode"/>
+        <label for="all">Show All</label>
       </fieldset>
 
       <label for="allow-numbers">Allow Numbers?: </label>
@@ -117,8 +134,9 @@
     </div>
 
     <div class="flex flex-col items-center justify-center">
-      <div class="w-48 h-48 text-9xl flex items-center justify-center">
-        {{ getCardText() }}
+      <div class="w-48 h-48 text-9xl flex items-center justify-center border-4 border-black rounded-lg mb-4">
+        <span v-if="questionMode !== 'audio'">{{ getCardText() }}</span>
+        <img v-if="questionMode === 'audio'" src="/images/audio.png" alt="Click for audio" class="w-40 h-40 cursor-pointer" @click="playAudio">
       </div>
       <div>
         <form @submit.prevent="handleSubmitClick" class="flex items-center gap-2">
